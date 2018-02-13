@@ -119,6 +119,11 @@ export enum BindingType {
 export type TagMap = MapObject<any>;
 
 /**
+ * A function as the template to configure bindings
+ */
+export type BindingTemplate<T = unknown> = (binding: Binding<T>) => void;
+
+/**
  * Binding represents an entry in the `Context`. Each binding has a key and a
  * corresponding value getter.
  */
@@ -438,7 +443,7 @@ export class Binding<T = BoundValue> {
    * ```
    * @param templateFn A function to configure the binding
    */
-  apply(templateFn: (binding: Binding<T>) => void): this {
+  apply(templateFn: BindingTemplate<T>): this {
     templateFn(this);
     return this;
   }

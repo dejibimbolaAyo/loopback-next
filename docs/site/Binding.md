@@ -179,6 +179,53 @@ const serverBinding = new Binding<RestServer>('servers.RestServer1');
 serverBinding.apply(serverTemplate);
 ```
 
+### Configure binding attributes for a class
+
+Classes can be discovered and bound to the context during `boot`. To allow
+certain binding attributes to be configured to facilitate automatic registration
+of such classes, you can use `@bind` decorator:
+
+```ts
+import {bind, BindingScope} from '@loopback/context';
+
+@bind({
+  scope: BindingScope.SINGLETON,
+  tags: ['service'],
+})
+export class MyService {}
+
+// @binding.provider is a shortcut for a provider class
+@bind.provider({
+  tags: {
+    key: 'my-date-provider',
+  },
+})
+export class MyDateProvider implements Provider<Date> {
+  value() {
+    return new Date();
+  }
+}
+
+@bind({
+  tags: ['controller', {name: 'my-controller'}],
+})
+export class MyController {}
+
+// @bind() can take one or more binding template functions
+@bind(binding => binding.tag('controller', {name: 'your-controller'})
+export class YourController {}
+```
+
+Then a binding can be created by inspecting the class,
+
+```ts
+import {createBindingFromClass} from '@loopback/context';
+
+const ctx = new Context();
+const binding = createBindingFromClass(MyService);
+ctx.add(binding);
+```
+
 ### Encoding value types in binding keys
 
 String keys for bindings do not help enforce the value type. Consider the

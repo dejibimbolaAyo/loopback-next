@@ -19,12 +19,19 @@ export {
   getDeepProperty,
 } from './value-promise';
 
-export {Binding, BindingScope, BindingType, TagMap} from './binding';
+export {
+  Binding,
+  BindingScope,
+  BindingType,
+  TagMap,
+  BindingTemplate,
+} from './binding';
 
 export {Context} from './context';
 export {BindingKey, BindingAddress} from './binding-key';
 export {ResolutionSession} from './resolution-session';
 export {inject, Setter, Getter, Injection, InjectionMetadata} from './inject';
+export * from './binding-decorator';
 export {Provider} from './provider';
 
 export {instantiateClass, invokeMethod} from './resolver';
