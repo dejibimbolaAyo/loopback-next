@@ -5,6 +5,10 @@
 
 import {BindingKey} from '@loopback/context';
 import {Application, ControllerClass, ApplicationMetadata} from './application';
+import {
+  LifeCycleObserverOptions,
+  LifeCycleObserverRegistry,
+} from './lifecycle-registry';
 
 /**
  * Namespace for core binding keys
@@ -71,6 +75,20 @@ export namespace CoreBindings {
    * context
    */
   export const CONTROLLER_CURRENT = BindingKey.create('controller.current');
+
+  /**
+   * Binding key for life cycle observer options
+   */
+  export const LIFE_CYCLE_OBSERVER_REGISTRY = BindingKey.create<
+    LifeCycleObserverRegistry
+  >('lifeCycleObserver.registry');
+
+  /**
+   * Binding key for life cycle observer options
+   */
+  export const LIFE_CYCLE_OBSERVER_OPTIONS = BindingKey.create<
+    LifeCycleObserverOptions
+  >('lifeCycleObserver.options');
 }
 
 export namespace CoreTags {

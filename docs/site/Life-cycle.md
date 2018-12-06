@@ -1,6 +1,6 @@
 ---
 lang: en
-title: 'Life Cycles'
+title: 'Life cycle events and observers'
 keywords: LoopBack 4.0, LoopBack 4
 sidebar: lb4_sidebar
 permalink: /doc/en/lb4/Life-cycle.html
@@ -9,10 +9,10 @@ permalink: /doc/en/lb4/Life-cycle.html
 ## Overview
 
 A LoopBack application has its own life cycles at runtime. There are two methods
-to control the transition of states:
+to control the transition of states of `Application`.
 
-- start: Start the application
-- stop: Stop the application
+- start(): Start the application
+- stop(): Stop the application
 
 It's often desirable for various types of artifacts to participate in the life
 cycles and perform related processing upon `start` and `stop`. Good examples of

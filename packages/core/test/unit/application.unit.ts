@@ -191,12 +191,12 @@ describe('Application', () => {
       await app.stop();
     });
 
-    it('starts servers bound with `server` tag', async () => {
+    it('starts servers bound with `LIFE_CYCLE_OBSERVER` tag', async () => {
       const app = new Application();
       app
         .bind('fake-server')
         .toClass(FakeServer)
-        .tag(CoreTags.SERVER)
+        .tag(CoreTags.LIFE_CYCLE_OBSERVER, CoreTags.SERVER)
         .inScope(BindingScope.SINGLETON);
       await app.start();
       const server = await app.get<FakeServer>('fake-server');

@@ -212,7 +212,7 @@ describe('lifecycle registry', () => {
     const serverBinding = ctx
       .bind(key)
       .toClass(FakeServer)
-      .tag(CoreTags.SERVER)
+      .tag(CoreTags.SERVER, CoreTags.LIFE_CYCLE_OBSERVER)
       .inScope(BindingScope.SINGLETON);
     if (group) {
       serverBinding.tag({[CoreTags.LIFE_CYCLE_OBSERVER_GROUP]: group});

@@ -3,8 +3,14 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {Binding, BindingScope, BindingType, Context} from '@loopback/context';
-import {CoreTags} from './keys';
+import {
+  Binding,
+  BindingScope,
+  BindingType,
+  Context,
+  inject,
+} from '@loopback/context';
+import {CoreTags, CoreBindings} from './keys';
 import {LifeCycleObserver} from './lifecycle';
 import debugFactory = require('debug');
 const debug = debugFactory('loopback:core:lifecycle');
@@ -13,11 +19,24 @@ const debug = debugFactory('loopback:core:lifecycle');
  * A group of life cycle observers
  */
 export type LifeCycleObserverGroup = {
+  /**
+   * Observer group name
+   */
   group: string;
+  /**
+   * Bindings for observers within the group
+   */
   bindings: Readonly<Binding<LifeCycleObserver>>[];
 };
 
 export type LifeCycleObserverOptions = {
+  /**
+   * Control the order of observer groups for notifications. For example,
+   * with `['datasource', 'server']`, the observers in `datasource` group are
+   * notified before those in `server` group during `start`. Please note that
+   * observers are notified in the reverse order during `stop`.
+   */
+  groupsByOrder: string[];
   /**
    * Notify observers of the same group in parallel, default to `true`
    */
@@ -25,45 +44,52 @@ export type LifeCycleObserverOptions = {
 };
 
 /**
- *
- * A Context subclass that supports life cycle
- *
+ * A context-based registry for life cycle observers
  */
 export class LifeCycleObserverRegistry implements LifeCycleObserver {
   constructor(
+    @inject.context()
     protected ctx: Context,
-    protected options: LifeCycleObserverOptions = {parallel: true},
+    @inject(CoreBindings.LIFE_CYCLE_OBSERVER_OPTIONS, {optional: true})
+    protected options: LifeCycleObserverOptions = {
+      parallel: true,
+      groupsByOrder: ['server'],
+    },
   ) {}
-  /**
-   * Configures the ordering of life cycle observers by group names
-   */
-  protected groupsByOrder: string[] = ['server'];
 
   setGroupsByOrder(groups: string[]) {
-    this.groupsByOrder = groups || ['server'];
+    this.options.groupsByOrder = groups || ['server'];
   }
 
   /**
    * Find all life cycle observer bindings. By default, a constant or singleton
-   * binding tagged with `CoreBindings.Tags.LIFE_CYCLE_OBSERVER` or
-   * `CoreBindings.Tags.SERVER`.
+   * binding tagged with `CoreTags.LIFE_CYCLE_OBSERVER`
    */
   findObserverBindings() {
     return this.ctx.find<LifeCycleObserver>(
       binding =>
         (binding.type === BindingType.CONSTANT ||
           binding.scope === BindingScope.SINGLETON) &&
-        (binding.tagMap[CoreTags.LIFE_CYCLE_OBSERVER] != null ||
-          binding.tagMap[CoreTags.SERVER]),
+        binding.tagMap[CoreTags.LIFE_CYCLE_OBSERVER] != null,
     );
   }
 
   /**
-   * Get observer groups by order
+   * Get observer groups ordered by the group
    */
   getObserverGroupsByOrder(): LifeCycleObserverGroup[] {
     const bindings = this.findObserverBindings();
-    return this.sortObserverBindingsByGroup(bindings);
+    const groups = this.sortObserverBindingsByGroup(bindings);
+    if (debug.enabled) {
+      debug(
+        'Observer groups: %j',
+        groups.map(g => ({
+          group: g.group,
+          bindings: g.bindings.map(b => b.key),
+        })),
+      );
+    }
+    return groups;
   }
 
   /**
@@ -77,9 +103,15 @@ export class LifeCycleObserverRegistry implements LifeCycleObserver {
     let group = binding.tagMap[CoreTags.LIFE_CYCLE_OBSERVER_GROUP];
     if (!group) {
       // Fall back to a tag that matches one of the groups
-      group = this.groupsByOrder.find(g => binding.tagMap[g] === g);
+      group = this.options.groupsByOrder.find(g => binding.tagMap[g] === g);
     }
-    return group || '';
+    group = group || '';
+    debug(
+      'Binding %s is configured with observer group %s',
+      binding.key,
+      group,
+    );
+    return group;
   }
 
   /**
@@ -113,8 +145,8 @@ export class LifeCycleObserverRegistry implements LifeCycleObserver {
     // Sort the groups
     return groups.sort(
       (g1, g2) =>
-        this.groupsByOrder.indexOf(g1.group) -
-        this.groupsByOrder.indexOf(g2.group),
+        this.options.groupsByOrder.indexOf(g1.group) -
+        this.options.groupsByOrder.indexOf(g2.group),
     );
   }
 
@@ -172,6 +204,11 @@ export class LifeCycleObserverRegistry implements LifeCycleObserver {
     }
   }
 
+  /**
+   * Emit events to the observer groups
+   * @param events Event names
+   * @param groups Observer groups
+   */
   protected async notifyGroups(
     events: (keyof LifeCycleObserver)[],
     groups: LifeCycleObserverGroup[],

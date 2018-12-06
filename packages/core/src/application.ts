@@ -22,12 +22,13 @@ const debug = debugFactory('loopback:core:application');
  * and models.
  */
 export class Application extends Context implements LifeCycleObserver {
-  lifecycle: LifeCycleObserverRegistry;
-
   constructor(public options: ApplicationConfig = {}) {
     super('application');
 
-    this.lifecycle = new LifeCycleObserverRegistry(this);
+    // Bind the life cycle observer registry
+    this.bind(CoreBindings.LIFE_CYCLE_OBSERVER_REGISTRY)
+      .toClass(LifeCycleObserverRegistry)
+      .inScope(BindingScope.SINGLETON);
     // Bind to self to allow injection of application context in other modules.
     this.bind(CoreBindings.APPLICATION_INSTANCE).to(this);
     // Make options available to other modules as well.
@@ -190,7 +191,8 @@ export class Application extends Context implements LifeCycleObserver {
    * @memberof Application
    */
   public async start(): Promise<void> {
-    await this.lifecycle.start();
+    const lifecycle = await this.get(CoreBindings.LIFE_CYCLE_OBSERVER_REGISTRY);
+    await lifecycle.start();
   }
 
   /**
@@ -199,7 +201,8 @@ export class Application extends Context implements LifeCycleObserver {
    * @memberof Application
    */
   public async stop(): Promise<void> {
-    await this.lifecycle.stop();
+    const lifecycle = await this.get(CoreBindings.LIFE_CYCLE_OBSERVER_REGISTRY);
+    await lifecycle.stop();
   }
 }
 

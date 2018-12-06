@@ -3,19 +3,24 @@
 // This file is licensed under the MIT License.
 // License text available at https://opensource.org/licenses/MIT
 
-import {Binding, BindingScope, Constructor} from '@loopback/context';
+import {
+  Binding,
+  BindingScope,
+  Constructor,
+  ValueOrPromise,
+} from '@loopback/context';
 import {CoreTags} from './keys';
 
 /**
  * Observers to handle life cycle start/stop events
  */
 export interface LifeCycleObserver {
-  preStart?(): Promise<void> | void;
-  start?(): Promise<void> | void;
-  postStart?(): Promise<void> | void;
-  preStop?(): Promise<void> | void;
-  stop?(): Promise<void> | void;
-  postStop?(): Promise<void> | void;
+  preStart?(): ValueOrPromise<void>;
+  start?(): ValueOrPromise<void>;
+  postStart?(): ValueOrPromise<void>;
+  preStop?(): ValueOrPromise<void>;
+  stop?(): ValueOrPromise<void>;
+  postStop?(): ValueOrPromise<void>;
 }
 
 const lifeCycleMethods: (keyof LifeCycleObserver)[] = [
