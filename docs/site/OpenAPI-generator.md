@@ -19,7 +19,9 @@ lb4 openapi [<url>] [options]
 ### Options
 
 - `--url`: URL or file path of the OpenAPI spec.
-- `--validate`: Validate the OpenAPI spec. Default: false.
+- `--validate`: Validate the OpenAPI spec. Default: `false`.
+- `--promote-anonymous-schemas`: Promote anonymous schemas as models classes.
+  Default: `false`.
 
 ### Arguments
 

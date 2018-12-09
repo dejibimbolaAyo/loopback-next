@@ -4,11 +4,9 @@
 // License text available at https://opensource.org/licenses/MIT
 
 'use strict';
-const fs = require('fs');
-const util = require('util');
 
 const debug = require('../../lib/debug')('openapi-generator');
-const {mapSchemaType} = require('./schema-helper');
+const {mapSchemaType, registerSchema} = require('./schema-helper');
 const {
   isExtension,
   titleCase,
@@ -17,7 +15,6 @@ const {
   camelCase,
   escapeIdentifier,
   escapePropertyOrMethodName,
-  toJsonStr,
 } = require('./utils');
 
 const HTTP_VERBS = [
@@ -162,6 +159,7 @@ function buildMethodSpec(controllerSpec, op, options) {
       } else {
         paramNames[name] = 1;
       }
+      registerSchema(undefined, p.schema, options);
       const pType = mapSchemaType(p.schema, options);
       addImportsForType(pType);
       comments.push(`@param ${name} ${p.description || ''}`);
@@ -184,6 +182,7 @@ function buildMethodSpec(controllerSpec, op, options) {
     const content = op.spec.requestBody.content;
     const jsonType = content && content['application/json'];
     if (jsonType && jsonType.schema) {
+      registerSchema(undefined, jsonType.schema, options);
       bodyType = mapSchemaType(jsonType.schema, options);
       addImportsForType(bodyType);
     }
@@ -221,6 +220,7 @@ function buildMethodSpec(controllerSpec, op, options) {
       const content = responses[code].content;
       const jsonType = content && content['application/json'];
       if (jsonType && jsonType.schema) {
+        registerSchema(undefined, jsonType.schema, options);
         returnType = mapSchemaType(jsonType.schema, options);
         addImportsForType(returnType);
         comments.push(`@returns ${responses[code].description || ''}`);

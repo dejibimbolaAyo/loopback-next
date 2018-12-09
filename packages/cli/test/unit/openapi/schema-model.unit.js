@@ -4,14 +4,17 @@
 // License text available at https://opensource.org/licenses/MIT
 
 const expect = require('@loopback/testlab').expect;
-const {loadSpec} = require('../../../generators/openapi/spec-loader');
+const {
+  loadSpec,
+  loadAndBuildSpec,
+} = require('../../../generators/openapi/spec-loader');
 const {
   generateModelSpecs,
 } = require('../../../generators/openapi/schema-helper');
 const path = require('path');
 
 describe('schema to model', () => {
-  let usptoSpec, petstoreSpec, customerSepc;
+  let usptoSpec, usptoSpecAnonymous, petstoreSpec, customerSepc;
   const uspto = path.join(__dirname, '../../fixtures/openapi/3.0/uspto.yaml');
   const petstore = path.join(
     __dirname,
@@ -24,6 +27,9 @@ describe('schema to model', () => {
 
   before(async () => {
     usptoSpec = await loadSpec(uspto);
+    usptoSpecAnonymous = await loadAndBuildSpec(uspto, {
+      promoteAnonymousSchemas: true,
+    });
     petstoreSpec = await loadSpec(petstore);
     customerSepc = await loadSpec(customer);
   });
@@ -59,6 +65,140 @@ describe('schema to model', () => {
           '  apiVersionNumber?: string;\n  apiUrl?: string;\n' +
           '  apiDocumentationUrl?: string;\n}[];\n}',
         signature: 'DataSetList',
+      },
+    ]);
+  });
+
+  it('generates models for uspto with promoted anonymous schemas', () => {
+    const models = usptoSpecAnonymous.modelSpecs;
+    expect(models).to.eql([
+      {
+        description: 'dataSetList',
+        name: 'dataSetList',
+        className: 'DataSetList',
+        fileName: 'data-set-list.model.ts',
+        properties: [
+          {
+            name: 'total',
+            signature: 'total?: number;',
+            decoration: "@property({name: 'total'})",
+          },
+          {
+            name: 'apis',
+            signature:
+              'apis?: {\n  apiKey?: string;\n  apiVersionNumber?: string;\n  ' +
+              'apiUrl?: string;\n  apiDocumentationUrl?: string;\n}[];',
+            decoration: "@property({name: 'apis'})",
+          },
+        ],
+        imports: [],
+        import: "import {DataSetList} from './data-set-list.model';",
+        kind: 'class',
+        declaration:
+          '{\n  total?: number;\n  apis?: {\n  apiKey?: string;\n  ' +
+          'apiVersionNumber?: string;\n  apiUrl?: string;\n  ' +
+          'apiDocumentationUrl?: string;\n}[];\n}',
+        signature: 'DataSetList',
+      },
+      {
+        description: 'dataSetList',
+        name: 'dataSetList',
+        className: 'DataSetList',
+        fileName: 'data-set-list.model.ts',
+        properties: [
+          {
+            name: 'total',
+            signature: 'total?: number;',
+            decoration: "@property({name: 'total'})",
+          },
+          {
+            name: 'apis',
+            signature:
+              'apis?: {\n  apiKey?: string;\n  apiVersionNumber?: string;\n  ' +
+              'apiUrl?: string;\n  apiDocumentationUrl?: string;\n}[];',
+            decoration: "@property({name: 'apis'})",
+          },
+        ],
+        imports: [],
+        import: "import {DataSetList} from './data-set-list.model';",
+        kind: 'class',
+        declaration:
+          '{\n  total?: number;\n  apis?: {\n  apiKey?: string;\n  ' +
+          'apiVersionNumber?: string;\n  apiUrl?: string;\n  ' +
+          'apiDocumentationUrl?: string;\n}[];\n}',
+        signature: 'DataSetList',
+      },
+      {
+        description: 'AnonymousType_2',
+        name: 'AnonymousType_2',
+        className: 'AnonymousType2',
+        fileName: 'anonymous-type-2.model.ts',
+        properties: [],
+        imports: [],
+        import: "import {AnonymousType2} from './anonymous-type-2.model';",
+        declaration: 'string',
+        signature: 'AnonymousType2',
+      },
+      {
+        description: 'AnonymousType_3',
+        name: 'AnonymousType_3',
+        className: 'AnonymousType3',
+        fileName: 'anonymous-type-3.model.ts',
+        properties: [],
+        imports: [],
+        import: "import {AnonymousType3} from './anonymous-type-3.model';",
+        declaration: 'string',
+        signature: 'AnonymousType3',
+      },
+      {
+        description: 'AnonymousType_4',
+        name: 'AnonymousType_4',
+        className: 'AnonymousType4',
+        fileName: 'anonymous-type-4.model.ts',
+        properties: [],
+        imports: [],
+        import: "import {AnonymousType4} from './anonymous-type-4.model';",
+        declaration: 'string',
+        signature: 'AnonymousType4',
+      },
+      {
+        description: 'AnonymousType_5',
+        name: 'AnonymousType_5',
+        className: 'AnonymousType5',
+        fileName: 'anonymous-type-5.model.ts',
+        properties: [],
+        imports: [],
+        import: "import {AnonymousType5} from './anonymous-type-5.model';",
+        declaration: 'string',
+        signature: 'AnonymousType5',
+      },
+      {
+        description: 'AnonymousType_6',
+        name: 'AnonymousType_6',
+        className: 'AnonymousType6',
+        fileName: 'anonymous-type-6.model.ts',
+        properties: [],
+        imports: [],
+        import: "import {AnonymousType6} from './anonymous-type-6.model';",
+        declaration: 'string',
+        signature: 'AnonymousType6',
+      },
+      {
+        description: 'AnonymousType_7',
+        name: '{\n  \n}[]',
+        className: 'AnonymousType7',
+        fileName: 'anonymous-type-7.model.ts',
+        properties: [],
+        imports: [],
+        import: "import {AnonymousType7} from './anonymous-type-7.model';",
+        declaration: '{\n  \n}[]',
+        signature: 'AnonymousType7',
+        itemType: {
+          imports: [],
+          declaration: '{\n  \n}',
+          properties: [],
+          signature: '{\n  \n}',
+        },
       },
     ]);
   });

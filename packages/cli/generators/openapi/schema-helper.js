@@ -4,7 +4,6 @@
 // License text available at https://opensource.org/licenses/MIT
 
 'use strict';
-const util = require('util');
 
 const {
   isExtension,
@@ -301,29 +300,13 @@ function generateModelSpecs(apiSpec, options) {
 
   const schemaMapping = (options.schemaMapping = options.schemaMapping || {});
 
-  const schemas =
-    (apiSpec && apiSpec.components && apiSpec.components.schemas) || {};
-
-  // First map schema objects to names
-  for (const s in schemas) {
-    if (isExtension(s)) continue;
-    schemaMapping[`#/components/schemas/${s}`] = schemas[s];
-    const className = titleCase(s);
-    objectTypeMapping.set(schemas[s], {
-      description: schemas[s].description || s,
-      name: s,
-      className,
-      fileName: getModelFileName(s),
-      properties: [],
-      imports: [],
-    });
-  }
+  registerNamedSchemas(apiSpec, options);
 
   const models = [];
   // Generate models from schema objects
-  for (const s in schemas) {
+  for (const s in options.schemaMapping) {
     if (isExtension(s)) continue;
-    const schema = schemas[s];
+    const schema = options.schemaMapping[s];
     const model = mapSchemaType(schema, {objectTypeMapping, schemaMapping});
     // `model` is `undefined` for primitive types
     if (model == null) continue;
@@ -332,6 +315,58 @@ function generateModelSpecs(apiSpec, options) {
     }
   }
   return models;
+}
+
+/**
+ * Register the named schema
+ * @param {string} schemaName Schema name
+ * @param {object} schema Schema object
+ * @param {object} typeRegistry Options for objectTypeMapping & schemaMapping
+ */
+function registerSchema(schemaName, schema, typeRegistry) {
+  if (typeRegistry.objectTypeMapping.get(schema)) return;
+  if (!schemaName) {
+    // Anonymous schema
+    if (!typeRegistry.promoteAnonymousSchemas) {
+      // Skip anonymous schemas
+      return;
+    }
+    // Infer a schema name
+    if (schema.title) {
+      schemaName = camelCase(schema.title);
+    } else {
+      if (typeRegistry.nameIndex == null) typeRegistry.nameIndex = 0;
+      typeRegistry.nameIndex++;
+      schemaName = 'AnonymousType_' + typeRegistry.nameIndex;
+    }
+  }
+  typeRegistry.schemaMapping[`#/components/schemas/${schemaName}`] = schema;
+  const className = titleCase(schemaName);
+  typeRegistry.objectTypeMapping.set(schema, {
+    description: schema.description || schemaName,
+    name: schemaName,
+    className,
+    fileName: getModelFileName(schemaName),
+    properties: [],
+    imports: [],
+  });
+}
+
+/**
+ * Register spec.components.schemas
+ * @param {*} apiSpec OpenAPI spec
+ * @param {*} typeRegistry options for objectTypeMapping & schemaMapping
+ */
+function registerNamedSchemas(apiSpec, typeRegistry) {
+  const schemas =
+    (apiSpec && apiSpec.components && apiSpec.components.schemas) || {};
+
+  // First map schema objects to names
+  for (const s in schemas) {
+    if (isExtension(s)) continue;
+    const schema = schemas[s];
+    registerSchema(s, schema, typeRegistry);
+  }
 }
 
 function getModelFileName(modelName) {
@@ -344,6 +379,8 @@ function getModelFileName(modelName) {
 
 module.exports = {
   mapSchemaType,
+  registerSchema,
+  registerNamedSchemas,
   generateModelSpecs,
   getModelFileName,
 };
